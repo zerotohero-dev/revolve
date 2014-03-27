@@ -1,0 +1,3 @@
+1. one file to store everything in memory
+2. that file processes per cpu, each process can read the shared memory.
+3. will serve images from the memory in a round-robin fashion.
