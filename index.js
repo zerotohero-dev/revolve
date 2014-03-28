@@ -5,6 +5,8 @@ var cluster = require('cluster'),
     path = require('path'),
     Q = require('q'),
 
+    cpuCount = os.cpus().length,
+
     imageCache = [];
 
 function readFile(file) {
@@ -16,6 +18,7 @@ function readFile(file) {
 
     return deferred.promise;
 }
+
 function putAllToMemory(files) {
     var promises = [];
 
@@ -46,7 +49,38 @@ function putAssetsIntoMemory() {
 }
 
 function startForking() {
-    
+    var i, len, currentIndex = 0;
+
+    if (cluster.isMaster) {
+        for(i = 0, len = cpuCount; i < len; i++) {
+            var worker = cluster.fork();
+
+            worker.on('message', function(message) {
+                if (message === 'fetch-index') {
+
+                    // TODO: send a random index instead.
+                    worker.send({action:'update-index', data: currentIndex++});
+                }
+            });
+        }
+    } else {
+        var currentResponse = null;
+
+        http.createServer(function(req, res) {
+            currentResponse = res;
+
+            process.send('fetch-index');
+        }).listen(8000);
+
+        process.on('message', function(message) {
+
+            // TODO: this should be a binary png stream.
+            currentResponse.writeHead(200);
+            currentResponse.end("hello world\n");
+        });
+
+        // TODO: respawn the child process if it dies.
+    }
 }
 
 putAssetsIntoMemory().then(function() {
