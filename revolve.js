@@ -48,6 +48,10 @@ function putAssetsIntoMemory() {
     });
 }
 
+function getRandomIndex() {
+    return Math.floor(Math.random()*(imageCache.length+1));
+}
+
 function startForking() {
     var i, len, currentIndex = 0;
 
@@ -58,8 +62,7 @@ function startForking() {
             worker.on('message', function(message) {
                 if (message === 'fetch-index') {
 
-                    // TODO: send a random index instead.
-                    worker.send({action:'update-index', data: currentIndex++});
+                    worker.send({action:'update-index', data: getRandomIndex()});
                 }
             });
         }
@@ -67,16 +70,26 @@ function startForking() {
         var currentResponse = null;
 
         http.createServer(function(req, res) {
+            console.log('sending to process');
             currentResponse = res;
 
             process.send('fetch-index');
         }).listen(8000);
 
-        process.on('message', function(message) {
+        process.on('message', function(meta) {
+            console.log('on message');
 
-            // TODO: this should be a binary png stream.
-            currentResponse.writeHead(200);
-            currentResponse.end("hello world\n");
+            if (meta.action !== 'update-index') {return;}
+
+            var index = meta.data,
+                image = imageCache[index];
+
+            console.log(currentResponse);
+
+            currentResponse.statusCode = 200;
+            currentResponse.setHeader('Content-Type', 'image/png');
+
+            currentResponse.end(image);
         });
 
         // TODO: respawn the child process if it dies.
