@@ -66,6 +66,10 @@ function startForking() {
                 }
             });
         }
+
+        cluster.on('exit', function() {
+            cluster.fork();
+        })
     } else {
         var currentResponse = null;
 
@@ -74,7 +78,7 @@ function startForking() {
             currentResponse = res;
 
             process.send('fetch-index');
-        }).listen(8000);
+        }).listen(3005);
 
         process.on('message', function(meta) {
             console.log('on message');
@@ -91,8 +95,6 @@ function startForking() {
 
             currentResponse.end(image);
         });
-
-        // TODO: respawn the child process if it dies.
     }
 }
 
