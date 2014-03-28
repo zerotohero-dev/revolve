@@ -1,0 +1,29 @@
+{
+  "name": "revolve",
+  "version": "0.1.0",
+  "description": "image revolver",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/v0lkan/revolve.git"
+  },
+  "keywords": [
+    "image",
+    "rotation",
+    "node.js",
+    "process",
+    "fork"
+  ],
+  "author": "Volkan Özçelik",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/v0lkan/revolve/issues"
+  },
+  "homepage": "https://github.com/v0lkan/revolve",
+  "dependencies": {
+    "q": "~1.0.1"
+  }
+}
