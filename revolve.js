@@ -59,10 +59,25 @@ function startForking() {
         for(i = 0, len = cpuCount; i < len; i++) {
             var worker = cluster.fork();
 
-            worker.on('message', function(message) {
-                if (message === 'fetch-index') {
+            worker.on('message', function(meta) {
+                var message = meta.action,
+                    from = meta.from;
 
-                    worker.send({action:'update-index', data: getRandomIndex()});
+                if (message === 'fetch-index') {
+                    var workers = cluster.workers;
+
+                    for(var key in workers) {
+                        console.log('a');
+                        var current = workers[key];
+                        
+                        if(current.id === from) {
+                            console.log('b');
+                            current.send({action:'update-index', data: getRandomIndex()});
+                            console.log('c');
+                        }
+                        
+                        console.log('d');
+                    }
                 }
             });
         }
@@ -71,30 +86,36 @@ function startForking() {
             cluster.fork();
         })
     } else {
-        var currentResponse = null;
+        console.log('setting new responses');
 
-        http.createServer(function(req, res) {
-            console.log('sending to process');
-            currentResponse = res;
-
-            process.send('fetch-index');
-        }).listen(3005);
+        var currentResponse;
 
         process.on('message', function(meta) {
             console.log('on message');
+            console.log(meta);
 
             if (meta.action !== 'update-index') {return;}
 
             var index = meta.data,
                 image = imageCache[index];
 
-            console.log(currentResponse);
+            
 
             currentResponse.statusCode = 200;
             currentResponse.setHeader('Content-Type', 'image/png');
 
             currentResponse.end(image);
         });
+
+        http.createServer(function(req, res) {
+            console.log('sending to process ' + req.url);
+
+            currentResponse = res;
+
+            process.send({action:'fetch-index', from: cluster.worker.id });
+
+        }).listen(3005);
+
     }
 }
 
