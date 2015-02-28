@@ -67,16 +67,16 @@ function startForking() {
                     var workers = cluster.workers;
 
                     for(var key in workers) {
-                        console.log('a');
+                        //console.log('a');
                         var current = workers[key];
                         
                         if(current.id === from) {
-                            console.log('b');
+                            //console.log('b');
                             current.send({action:'update-index', data: getRandomIndex()});
-                            console.log('c');
+                            //console.log('c');
                         }
                         
-                        console.log('d');
+                        //console.log('d');
                     }
                 }
             });
@@ -86,20 +86,18 @@ function startForking() {
             cluster.fork();
         })
     } else {
-        console.log('setting new responses');
+        //console.log('setting new responses');
 
         var currentResponse;
 
         process.on('message', function(meta) {
-            console.log('on message');
-            console.log(meta);
+            //console.log('on message');
+            //console.log(meta);
 
             if (meta.action !== 'update-index') {return;}
 
             var index = meta.data,
                 image = imageCache[index];
-
-            
 
             currentResponse.statusCode = 200;
             currentResponse.setHeader('Content-Type', 'image/png');
@@ -108,14 +106,13 @@ function startForking() {
         });
 
         http.createServer(function(req, res) {
-            console.log('sending to process ' + req.url);
+            //console.log('sending to process ' + req.url);
 
             currentResponse = res;
 
             process.send({action:'fetch-index', from: cluster.worker.id });
 
         }).listen(3005);
-
     }
 }
 
